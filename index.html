@@ -296,8 +296,8 @@
     </div>
 
     <script>
-        // 配置：修改老板密码为 ty5623595（你可以改成任意密码）
-        const CONFIG={bossPassword:'ty5623595',defaultCost:0};
+        // 配置：修改老板密码为 ty562359（你可以改成任意密码）
+        const CONFIG={bossPassword:'ty562359',defaultCost:0};
         let currentRole='staff',records=[],currentFilter='today',editingId=null;
 
         // Supabase 配置 - 必须替换成你的实际密钥！
@@ -346,13 +346,13 @@
         function showBossLogin(){document.getElementById('login-select').style.display='none';document.getElementById('login-boss').style.display='block';setTimeout(function(){document.getElementById('boss-password').focus()},100)}
         function backToSelect(){document.getElementById('login-boss').style.display='none';document.getElementById('login-select').style.display='block';document.getElementById('boss-password').value=''}
         function enterBoss(){
-            // 验证新密码 boss6666
+            // 验证新密码 ty562359
             if(document.getElementById('boss-password').value===CONFIG.bossPassword){
                 currentRole='boss';
                 showApp()
             } else{
                 // 提示文字同步更新
-                alert('密码错误！默认密码：boss6666');
+                alert('密码错误!');
                 document.getElementById('boss-password').value='';
                 document.getElementById('boss-password').focus()
             }
