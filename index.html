@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>服装店销售管理系统</title>
+    <!-- 添加 Supabase CDN -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script>
         // 页面加载前立即检测URL参数（最关键！）
         (function(){
@@ -12,7 +14,6 @@
             console.log('URL参数检测:', window.location.search, 'mode=', mode);
             
             if (mode === 'staff') {
-                // 直接跳转到店员模式（通过修改DOM）
                 window.staffAutoLogin = true;
             } else if (mode === 'boss') {
                 window.bossAutoLogin = true;
@@ -231,28 +232,48 @@
     <script>
         // 配置
         const CONFIG={bossPassword:'8888',defaultCost:0};
-        let currentRole='staff',records=JSON.parse(localStorage.getItem('clothingSales'))||[],currentFilter='today',editingId=null;
+        let currentRole='staff',records=[],currentFilter='today',editingId=null;
+
+        // Supabase 配置 - 必须替换成你的实际密钥！
+        const SUPABASE_URL = 'https://kmgwhidixermpgxuaglv.supabase.co'
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImttZ3doaWRpeGVybXBneHVhZ2x2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE3NjQ1OTYsImV4cCI6MjA4NzM0MDU5Nn0.0GlxvIrd_9ABlY96ML5TbyFrKBYIOtzCZnVAQR-k9NY'
+        
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+
+        // 加载数据
+        async function loadData() {
+            const { data, error } = await supabaseClient
+                .from('sales')
+                .select('*')
+                .order('timestamp', { ascending: false })
+            
+            if (error) {
+                console.error('加载失败:', error)
+                alert('数据加载失败: ' + error.message)
+                records = []
+            } else {
+                records = data || []
+            }
+            updateStats()
+            updateTable()
+        }
 
         // 页面加载完成后执行
         document.addEventListener('DOMContentLoaded',function(){
-            // 检测URL参数
             var urlParams=new URLSearchParams(window.location.search);
             var mode=urlParams.get('mode');
             console.log('URL参数:',window.location.search,'mode=',mode);
             
             if(mode==='staff'){
-                // 直接进入店员模式
                 currentRole='staff';
                 document.getElementById('login-select').style.display='none';
                 document.getElementById('app-page').style.display='block';
                 initApp();
             }else if(mode==='boss'){
-                // 显示老板登录
                 document.getElementById('login-select').style.display='none';
                 document.getElementById('login-boss').style.display='block';
                 setTimeout(function(){document.getElementById('boss-password').focus()},100);
             }
-            // 否则显示默认选择界面
         });
 
         function enterStaff(){currentRole='staff';showApp()}
@@ -277,25 +298,49 @@
                 costHint.textContent='';costInput.placeholder='80';costInput.setAttribute('required','required');clearBtn.style.display='block';
             }
             document.getElementById('sale-date').valueAsDate=new Date();
-            updateStats();updateTable();
+            loadData(); // 从云端加载数据
             document.getElementById('sale-form').addEventListener('submit',handleSubmit);
         }
 
-        function handleSubmit(e){
+        async function handleSubmit(e){
             e.preventDefault();
-            var name=document.getElementById('product-name').value,category=document.getElementById('category').value,salePrice=parseFloat(document.getElementById('sale-price').value),costPrice=parseFloat(document.getElementById('cost-price').value)||CONFIG.defaultCost,quantity=parseInt(document.getElementById('quantity').value),date=document.getElementById('sale-date').value;
+            var name=document.getElementById('product-name').value,category=document.getElementById('category').value,saleprice=parseFloat(document.getElementById('sale-price').value),costprice=parseFloat(document.getElementById('cost-price').value)||CONFIG.defaultCost,quantity=parseInt(document.getElementById('quantity').value),date=document.getElementById('sale-date').value;
             if(currentRole==='staff'&&!document.getElementById('cost-price').value&&!confirm('您没有输入成本，系统将记录成本为0，确定继续吗？\n（提示：老板后续可在数据中补充成本）'))return;
-            records.unshift({id:Date.now(),name:name,category:category,salePrice:salePrice,costPrice:costPrice,quantity:quantity,date:date,timestamp:new Date().getTime(),createdBy:currentRole,modifiedBy:null,modifiedAt:null});
-            saveData();updateStats();updateTable();
+            
+            const { data, error } = await supabaseClient
+                .from('sales')
+                .insert([{
+                    name: name,
+                    category: category,
+                    saleprice: saleprice,
+                    costprice: costprice,
+                    quantity: quantity,
+                    date: date,
+                    timestamp: new Date().getTime(),
+                    createdby: currentRole,
+                    modifiedby: null,
+                    modifiedat: null
+                }])
+                .select()
+            
+            if (error) {
+                alert('保存失败: ' + error.message)
+                return
+            }
+            
+            records.unshift(data[0]);
+            updateStats();updateTable();
             document.getElementById('product-name').value='';document.getElementById('sale-price').value='';document.getElementById('cost-price').value='';document.getElementById('quantity').value='1';document.getElementById('product-name').focus();
             showToast('✅ 记录添加成功！');
         }
 
-        function saveData(){localStorage.setItem('clothingSales',JSON.stringify(records))}
+        function saveData(){
+            // 云端版本不需要这个函数，保留空函数兼容旧代码
+        }
 
         function updateStats(){
             var filtered=getFilteredRecords(),revenue=0,cost=0;
-            filtered.forEach(function(r){revenue+=r.salePrice*r.quantity;cost+=r.costPrice*r.quantity});
+            filtered.forEach(function(r){revenue+=r.saleprice*r.quantity;cost+=r.costprice*r.quantity});
             var profit=revenue-cost,rate=revenue>0?((profit/revenue)*100).toFixed(1):0;
             var grid=document.getElementById('stats-grid');
             if(currentRole==='staff'){
@@ -312,15 +357,15 @@
             if(filtered.length===0){list.innerHTML='<div class="empty-state"><div class="empty-state-icon">📭</div><div>该时间段暂无记录</div></div>';return;}
             var html='';
             filtered.forEach(function(r){
-                var itemRevenue=r.salePrice*r.quantity,itemCost=r.costPrice*r.quantity,itemProfit=itemRevenue-itemCost,isProfit=itemProfit>=0;
+                var itemRevenue=r.saleprice*r.quantity,itemCost=r.costprice*r.quantity,itemProfit=itemRevenue-itemCost,isProfit=itemProfit>=0;
                 if(currentRole==='staff'){
-                    html+='<div class="record-row staff-view"><div class="record-product" data-label="商品"><div><div class="record-name">'+r.name+'</div><span class="record-category">'+r.category+'</span></div><div class="record-date">'+r.date+'</div></div><div class="record-cell record-price" data-label="售价">¥'+r.salePrice.toFixed(2)+'</div><div class="record-cell" data-label="数量">'+r.quantity+'</div><div class="record-cell record-price" data-label="营收">¥'+itemRevenue.toFixed(2)+'</div><div class="record-actions" data-label="操作"><button class="delete-btn action-btn" onclick="deleteRecord('+r.id+')">删除</button></div></div>';
+                    html+='<div class="record-row staff-view"><div class="record-product" data-label="商品"><div><div class="record-name">'+r.name+'</div><span class="record-category">'+r.category+'</span></div><div class="record-date">'+r.date+'</div></div><div class="record-cell record-price" data-label="售价">¥'+r.saleprice.toFixed(2)+'</div><div class="record-cell" data-label="数量">'+r.quantity+'</div><div class="record-cell record-price" data-label="营收">¥'+itemRevenue.toFixed(2)+'</div><div class="record-actions" data-label="操作"><button class="delete-btn action-btn" onclick="deleteRecord('+r.id+')">删除</button></div></div>';
                 }else{
-                    html+='<div class="record-row"><div class="record-product" data-label="商品"><div><div class="record-name">'+r.name+'</div><span class="record-category">'+r.category+'</span>'+(r.modifiedBy?'<span style="color:#ff9800;font-size:11px;">(已修改)</span>':'')+'</div><div class="record-date">'+r.date+'</div></div><div class="record-cell record-price" data-label="售价">¥'+r.salePrice.toFixed(2)+'</div><div class="record-cell" data-label="成本" style="color:'+(r.costPrice===0?'#999':'#333')+'">¥'+r.costPrice.toFixed(2)+(r.costPrice===0?'<span style="font-size:10px;color:#999;">(待补)</span>':'')+'</div><div class="record-cell" data-label="数量">'+r.quantity+'</div><div class="record-cell record-price" data-label="营收">¥'+itemRevenue.toFixed(2)+'</div><div class="record-cell record-profit '+(isProfit?'profit-positive':'profit-negative')+'" data-label="利润">'+(isProfit?'+':'')+'¥'+itemProfit.toFixed(2)+'</div><div class="record-actions" data-label="操作"><button class="edit-btn action-btn" onclick="openEdit('+r.id+')">修改</button><button class="delete-btn action-btn" onclick="deleteRecord('+r.id+')">删除</button></div></div>';
+                    html+='<div class="record-row"><div class="record-product" data-label="商品"><div><div class="record-name">'+r.name+'</div><span class="record-category">'+r.category+'</span>'+(r.modifiedby?'<span style="color:#ff9800;font-size:11px;">(已修改)</span>':'')+'</div><div class="record-date">'+r.date+'</div></div><div class="record-cell record-price" data-label="售价">¥'+r.saleprice.toFixed(2)+'</div><div class="record-cell" data-label="成本" style="color:'+(r.costprice===0?'#999':'#333')+'">¥'+r.costprice.toFixed(2)+(r.costprice===0?'<span style="font-size:10px;color:#999;">(待补)</span>':'')+'</div><div class="record-cell" data-label="数量">'+r.quantity+'</div><div class="record-cell record-price" data-label="营收">¥'+itemRevenue.toFixed(2)+'</div><div class="record-cell record-profit '+(isProfit?'profit-positive':'profit-negative')+'" data-label="利润">'+(isProfit?'+':'')+'¥'+itemProfit.toFixed(2)+'</div><div class="record-actions" data-label="操作"><button class="edit-btn action-btn" onclick="openEdit('+r.id+')">修改</button><button class="delete-btn action-btn" onclick="deleteRecord('+r.id+')">删除</button></div></div>';
                 }
             });
             var totalRevenue=0,totalCost=0;
-            filtered.forEach(function(r){totalRevenue+=r.salePrice*r.quantity;totalCost+=r.costPrice*r.quantity});
+            filtered.forEach(function(r){totalRevenue+=r.saleprice*r.quantity;totalCost+=r.costprice*r.quantity});
             var totalProfit=totalRevenue-totalCost;
             if(currentRole==='staff'){html+='<div class="summary-row staff-view"><div class="summary-label">合计 ('+filtered.length+'笔)</div><div>-</div><div>-</div><div class="record-price">¥'+totalRevenue.toFixed(2)+'</div><div>-</div></div>';}
             else{html+='<div class="summary-row"><div class="summary-label">合计 ('+filtered.length+'笔)</div><div>-</div><div class="record-price">¥'+totalCost.toFixed(2)+'</div><div>-</div><div class="record-price">¥'+totalRevenue.toFixed(2)+'</div><div class="record-profit '+(totalProfit>=0?'profit-positive':'profit-negative')+'">'+(totalProfit>=0?'+':'')+'¥'+totalProfit.toFixed(2)+'</div><div>-</div></div>';}
@@ -332,17 +377,39 @@
             var record=records.find(function(r){return r.id===id});
             if(!record)return;
             editingId=id;
-            document.getElementById('current-info').innerHTML='<strong>'+record.name+'</strong><br>当前成本：¥'+record.costPrice.toFixed(2)+' | 售价：¥'+record.salePrice.toFixed(2)+' | 数量：'+record.quantity;
-            document.getElementById('edit-cost').value=record.costPrice;
+            document.getElementById('current-info').innerHTML='<strong>'+record.name+'</strong><br>当前成本：¥'+record.costprice.toFixed(2)+' | 售价：¥'+record.saleprice.toFixed(2)+' | 数量：'+record.quantity;
+            document.getElementById('edit-cost').value=record.costprice;
             document.getElementById('edit-modal').classList.add('active');
             document.getElementById('edit-cost').focus();
         }
 
-        function saveEdit(){
+        async function saveEdit(){
             var newCost=parseFloat(document.getElementById('edit-cost').value);
             if(isNaN(newCost)||newCost<0){alert('请输入有效的成本金额');return}
+            
+            const { error } = await supabaseClient
+                .from('sales')
+                .update({
+                    costprice: newCost,
+                    modifiedby: 'boss',
+                    modifiedat: new Date().toISOString()
+                })
+                .eq('id', editingId)
+            
+            if (error) {
+                alert('修改失败: ' + error.message)
+                return
+            }
+            
             var record=records.find(function(r){return r.id===editingId});
-            if(record){record.costPrice=newCost;record.modifiedBy='boss';record.modifiedAt=new Date().toISOString();saveData();updateStats();updateTable();showToast('✅ 成本修改成功！')}
+            if(record){
+                record.costprice=newCost;
+                record.modifiedby='boss';
+                record.modifiedat=new Date().toISOString();
+                updateStats();
+                updateTable();
+                showToast('✅ 成本修改成功！')
+            }
             closeModal();
         }
 
@@ -367,15 +434,31 @@
             updateStats();updateTable();
         }
 
-        function deleteRecord(id){if(confirm('确定删除这条记录吗？')){records=records.filter(function(r){return r.id!==id});saveData();updateStats();updateTable();showToast('🗑️ 已删除')}}
+        async function deleteRecord(id){
+            if(!confirm('确定删除这条记录吗？')) return
+            
+            const { error } = await supabaseClient
+                .from('sales')
+                .delete()
+                .eq('id', id)
+            
+            if (error) {
+                alert('删除失败: ' + error.message)
+                return
+            }
+            
+            records=records.filter(function(r){return r.id!==id});
+            updateStats();updateTable();
+            showToast('🗑️ 已删除')
+        }
 
         function exportData(){
             var filtered=getFilteredRecords();
             if(filtered.length===0){alert('没有数据可导出');return}
             var csv='\uFEFF商品名称,分类,售价,成本,数量,日期,营业收入,成本合计,利润,录入者,修改者\n';
-            filtered.forEach(function(r){var revenue=r.salePrice*r.quantity,cost=r.costPrice*r.quantity,profit=revenue-cost;csv+=r.name+','+r.category+','+r.salePrice+','+r.costPrice+','+r.quantity+','+r.date+','+revenue+','+cost+','+profit+','+(r.createdBy==='staff'?'店员':'老板')+','+(r.modifiedBy?'老板':'')+'\n'});
+            filtered.forEach(function(r){var revenue=r.saleprice*r.quantity,cost=r.costprice*r.quantity,profit=revenue-cost;csv+=r.name+','+r.category+','+r.saleprice+','+r.costprice+','+r.quantity+','+r.date+','+revenue+','+cost+','+profit+','+(r.createdby==='staff'?'店员':'老板')+','+(r.modifiedby?'老板':'')+'\n'});
             var totalRevenue=0,totalCost=0;
-            filtered.forEach(function(r){totalRevenue+=r.salePrice*r.quantity;totalCost+=r.costPrice*r.quantity});
+            filtered.forEach(function(r){totalRevenue+=r.saleprice*r.quantity;totalCost+=r.costprice*r.quantity});
             csv+='合计,,,,,,'+totalRevenue+','+totalCost+','+(totalRevenue-totalCost)+',,\n';
             var blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}),link=document.createElement('a');
             link.href=URL.createObjectURL(blob);
@@ -386,7 +469,10 @@
 
         function clearAll(){
             if(currentRole!=='boss'){alert('只有老板才能清空数据');return}
-            if(confirm('确定要清空所有数据吗？此操作不可恢复！')){records=[];saveData();updateStats();updateTable();showToast('🗑️ 已清空所有数据')}
+            if(confirm('确定要清空所有数据吗？此操作不可恢复！')){
+                // 云端版本暂时不支持批量删除，需要逐条删除或添加truncate功能
+                alert('云端版本暂不支持一键清空，请逐条删除或使用Supabase后台清空')
+            }
         }
 
         function showToast(msg){
