@@ -39,6 +39,11 @@
         .no-password-badge{display:inline-block;background:#4caf50;color:white;padding:4px 12px;border-radius:12px;font-size:12px;margin-top:10px}
         .password-section{margin-top:20px}
         .password-input{width:100%;padding:15px;border:2px solid #ddd;border-radius:8px;font-size:18px;text-align:center;letter-spacing:8px;margin-bottom:15px}
+        .password-input:focus{
+            outline:none;
+            border-color:#667eea;
+            box-shadow:0 0 0 3px rgba(102,126,234,0.2);
+        }
         .btn{width:100%;padding:15px;border:none;border-radius:8px;font-size:16px;font-weight:bold;cursor:pointer;transition:all 0.3s}
         .btn-primary{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:white}
         .btn-secondary{background:#f0f0f0;color:#333;margin-top:10px}
@@ -54,21 +59,57 @@
         .stat-box.hidden{background:#e0e0e0;position:relative;overflow:hidden}
         .stat-box.hidden::after{content:"🔒";position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:24px;opacity:0.5}
         .stat-box.hidden .stat-value{filter:blur(4px);user-select:none}
-        .stat-label{font-size:12px;opacity:0.9;margin-bottom:5px}
-        .stat-value{font-size:24px;font-weight:bold}
+        .stat-label{font-size:13px;opacity:0.9;margin-bottom:5px}
+        .stat-value{font-size:22px;font-weight:bold}
         .form-group{margin-bottom:15px}
         label{display:block;margin-bottom:5px;color:#333;font-weight:500}
         input,select{width:100%;padding:12px;border:2px solid #e0e0e0;border-radius:8px;font-size:16px}
         input:focus,select:focus{outline:none;border-color:#667eea}
         .form-row{display:grid;grid-template-columns:1fr 1fr;gap:15px}
         button[type="submit"]{width:100%;padding:15px;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:white;border:none;border-radius:8px;font-size:16px;font-weight:bold;cursor:pointer}
-        .records-header{display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr 1fr 100px;gap:10px;padding:12px 15px;background:#f8f9fa;border-radius:8px;margin-bottom:10px;font-weight:600;color:#666;font-size:13px;text-align:center}
-        .records-header.staff-view{grid-template-columns:2fr 1fr 1fr 1fr 80px}
+
+        /* 表头保持横排 */
+        .records-header{
+            display:grid;
+            grid-template-columns:2fr 1fr 1fr 1fr 1fr 1fr 100px;
+            gap:10px;
+            padding:12px 15px;
+            background:#f8f9fa;
+            border-radius:8px;
+            margin-bottom:10px;
+            font-weight:600;
+            color:#666;
+            font-size:13px;
+            text-align:center;
+        }
+        .records-header.staff-view{
+            grid-template-columns:2fr 1fr 1fr 1fr 80px;
+        }
         .records-header span:first-child{text-align:left}
-        .record-row{display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr 1fr 100px;gap:10px;padding:15px;border-bottom:1px solid #f0f0f0;align-items:center;font-size:14px}
-        .record-row.staff-view{grid-template-columns:2fr 1fr 1fr 1fr 80px}
-        .record-row:hover{background:#fafafa;border-radius:8px}
-        .record-product{display:flex;flex-direction:column;gap:4px}
+
+        /* 重点：记录行强制横排，不堆叠 */
+        .record-row{
+            display:grid !important;
+            grid-template-columns:2fr 1fr 1fr 1fr 1fr 1fr 100px !important;
+            gap:10px !important;
+            padding:15px !important;
+            border-bottom:1px solid #f0f0f0 !important;
+            align-items:center !important;
+            font-size:14px !important;
+            background:white !important;
+            border:none !important;
+            margin-bottom:0 !important;
+        }
+        .record-row.staff-view{
+            grid-template-columns:2fr 1fr 1fr 1fr 80px !important;
+        }
+        .record-row:hover{background:#fafafa !important;border-radius:8px !important}
+
+        .record-product{
+            display:flex !important;
+            flex-direction:column !important;
+            gap:4px !important;
+        }
         .record-name{font-weight:600;color:#333;font-size:15px}
         .record-category{display:inline-block;padding:2px 8px;background:#e3f2fd;color:#1976d2;border-radius:4px;font-size:11px;width:fit-content}
         .record-date{color:#999;font-size:12px}
@@ -88,9 +129,25 @@
         .date-filter button.active{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:white}
         .export-btn{background:#52c41a;margin-top:10px;width:100%;padding:12px;border:none;border-radius:8px;color:white;font-size:16px;cursor:pointer}
         .clear-btn{background:#ff4d4f;margin-top:10px;width:100%;padding:12px;border:none;border-radius:8px;color:white;font-size:16px;cursor:pointer}
-        .summary-row{display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr 1fr 100px;gap:10px;padding:15px;background:#f5f5f5;border-radius:8px;margin-top:10px;font-weight:bold;color:#333;border-top:2px solid #e0e0e0}
-        .summary-row.staff-view{grid-template-columns:2fr 1fr 1fr 1fr 80px}
+
+        /* 合计行也保持横排 */
+        .summary-row{
+            display:grid !important;
+            grid-template-columns:2fr 1fr 1fr 1fr 1fr 1fr 100px !important;
+            gap:10px !important;
+            padding:15px !important;
+            background:#f5f5f5 !important;
+            border-radius:8px !important;
+            margin-top:10px !important;
+            font-weight:bold !important;
+            color:#333 !important;
+            border-top:2px solid #e0e0e0 !important;
+        }
+        .summary-row.staff-view{
+            grid-template-columns:2fr 1fr 1fr 1fr 80px !important;
+        }
         .summary-label{text-align:left;color:#666}
+
         .modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);display:none;justify-content:center;align-items:center;z-index:1000;padding:20px}
         .modal-overlay.active{display:flex}
         .modal-content{background:white;padding:25px;border-radius:16px;width:100%;max-width:400px}
@@ -101,7 +158,13 @@
         .btn-cancel{background:#f0f0f0;color:#333}
         .current-value{background:#f5f5f5;padding:12px;border-radius:8px;margin-bottom:15px;font-size:14px;color:#666}
         .info-banner{background:#e3f2fd;border-left:4px solid #2196f3;padding:12px;margin-bottom:20px;border-radius:4px;color:#1976d2;font-size:14px}
-        @media(max-width:768px){.form-row{grid-template-columns:1fr}.stats-grid{grid-template-columns:1fr 1fr}.records-header,.record-row,.summary-row{grid-template-columns:1fr}.records-header.staff-view,.record-row.staff-view,.summary-row.staff-view{grid-template-columns:1fr}.records-header{display:none}.record-row{gap:8px;padding:15px;margin-bottom:10px;background:#fafafa;border-radius:12px;border:1px solid #e0e0e0}.record-row>div{display:flex;justify-content:space-between;align-items:center;padding:4px 0}.record-row>div::before{content:attr(data-label);font-weight:600;color:#666;font-size:12px}.record-product{flex-direction:row;justify-content:space-between;align-items:center;border-bottom:1px solid #e0e0e0;padding-bottom:10px;margin-bottom:5px}.record-product::before{display:none}.record-actions{justify-content:flex-end;margin-top:10px;padding-top:10px;border-top:1px dashed #ddd}.record-actions::before{display:none}.summary-row{grid-template-columns:1fr 1fr}.summary-row>div:nth-child(3),.summary-row>div:nth-child(4),.summary-row>div:nth-child(5),.summary-row>div:nth-child(6){display:none}}
+
+        /* 取消移动端堆叠，保持横排 */
+        @media(max-width:768px){
+            .form-row{grid-template-columns:1fr}
+            .stats-grid{grid-template-columns:1fr 1fr}
+            .login-container{margin:40px auto}
+        }
     </style>
 </head>
 <body>
@@ -128,9 +191,9 @@
     <div id="login-boss" class="container" style="display:none">
         <div class="login-container">
             <h1 style="margin-bottom:10px">👑 老板验证</h1>
-            <p style="color:rgba(255,255,255,0.8);margin-bottom:30px">请输入管理密码（默认：8888）</p>
+            <p style="color:rgba(255,255,255,0.8);margin-bottom:30px">请输入管理密码（默认：boss6666）</p>
             <div class="password-section">
-                <input type="password" id="boss-password" class="password-input" placeholder="••••" maxlength="6">
+                <input type="password" id="boss-password" class="password-input" placeholder="••••••" maxlength="8">
                 <button class="btn btn-primary" onclick="enterBoss()">进入系统</button>
                 <a href="#" class="back-link" onclick="backToSelect()">← 返回选择</a>
             </div>
@@ -230,8 +293,8 @@
     </div>
 
     <script>
-        // 配置
-        const CONFIG={bossPassword:'8888',defaultCost:0};
+        // 配置：修改老板密码为 boss6666（你可以改成任意密码）
+        const CONFIG={bossPassword:'boss6666',defaultCost:0};
         let currentRole='staff',records=[],currentFilter='today',editingId=null;
 
         // Supabase 配置 - 必须替换成你的实际密钥！
@@ -258,7 +321,7 @@
             updateTable()
         }
 
-        // 页面加载完成后执行
+        // 页面加载完成后执行（修复URL跳转逻辑）
         document.addEventListener('DOMContentLoaded',function(){
             var urlParams=new URLSearchParams(window.location.search);
             var mode=urlParams.get('mode');
@@ -280,8 +343,16 @@
         function showBossLogin(){document.getElementById('login-select').style.display='none';document.getElementById('login-boss').style.display='block';setTimeout(function(){document.getElementById('boss-password').focus()},100)}
         function backToSelect(){document.getElementById('login-boss').style.display='none';document.getElementById('login-select').style.display='block';document.getElementById('boss-password').value=''}
         function enterBoss(){
-            if(document.getElementById('boss-password').value===CONFIG.bossPassword){currentRole='boss';showApp()}
-            else{alert('密码错误！默认密码：8888');document.getElementById('boss-password').value='';document.getElementById('boss-password').focus()}
+            // 验证新密码 boss6666
+            if(document.getElementById('boss-password').value===CONFIG.bossPassword){
+                currentRole='boss';
+                showApp()
+            } else{
+                // 提示文字同步更新
+                alert('密码错误！默认密码：boss6666');
+                document.getElementById('boss-password').value='';
+                document.getElementById('boss-password').focus()
+            }
         }
         function showApp(){document.getElementById('login-select').style.display='none';document.getElementById('login-boss').style.display='none';document.getElementById('app-page').style.display='block';initApp()}
         function logout(){if(confirm('确定要退出吗？'))window.location.href=window.location.pathname}
