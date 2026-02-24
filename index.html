@@ -68,10 +68,11 @@
         .form-row{display:grid;grid-template-columns:1fr 1fr;gap:15px}
         button[type="submit"]{width:100%;padding:15px;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:white;border:none;border-radius:8px;font-size:16px;font-weight:bold;cursor:pointer}
 
-        /* 表头保持横排 */
+        /* 表头保持横排 - 利润列宽度加宽10% */
         .records-header{
             display:grid;
-            grid-template-columns:2fr 1fr 1fr 1fr 1fr 1fr 100px;
+            /* 利润列从1fr调整为1.1fr，加宽10% */
+            grid-template-columns:2fr 1fr 1fr 1fr 1fr 1.1fr 100px;
             gap:10px;
             padding:12px 15px;
             background:#f8f9fa;
@@ -87,10 +88,11 @@
         }
         .records-header span:first-child{text-align:left}
 
-        /* 重点：记录行强制横排，不堆叠 */
+        /* 重点：记录行强制横排，利润列宽度同步加宽10% */
         .record-row{
             display:grid !important;
-            grid-template-columns:2fr 1fr 1fr 1fr 1fr 1fr 100px !important;
+            /* 利润列从1fr调整为1.1fr，加宽10% */
+            grid-template-columns:2fr 1fr 1fr 1fr 1fr 1.1fr 100px !important;
             gap:10px !important;
             padding:15px !important;
             border-bottom:1px solid #f0f0f0 !important;
@@ -130,10 +132,11 @@
         .export-btn{background:#52c41a;margin-top:10px;width:100%;padding:12px;border:none;border-radius:8px;color:white;font-size:16px;cursor:pointer}
         .clear-btn{background:#ff4d4f;margin-top:10px;width:100%;padding:12px;border:none;border-radius:8px;color:white;font-size:16px;cursor:pointer}
 
-        /* 合计行也保持横排 */
+        /* 合计行也保持横排 - 利润列宽度同步加宽10% */
         .summary-row{
             display:grid !important;
-            grid-template-columns:2fr 1fr 1fr 1fr 1fr 1fr 100px !important;
+            /* 利润列从1fr调整为1.1fr，加宽10% */
+            grid-template-columns:2fr 1fr 1fr 1fr 1fr 1.1fr 100px !important;
             gap:10px !important;
             padding:15px !important;
             background:#f5f5f5 !important;
@@ -293,8 +296,8 @@
     </div>
 
     <script>
-        // 配置：修改老板密码为 boss6666（你可以改成任意密码）
-        const CONFIG={bossPassword:'boss6666',defaultCost:0};
+        // 配置：修改老板密码为 ty5623595（你可以改成任意密码）
+        const CONFIG={bossPassword:'ty5623595',defaultCost:0};
         let currentRole='staff',records=[],currentFilter='today',editingId=null;
 
         // Supabase 配置 - 必须替换成你的实际密钥！
@@ -432,14 +435,18 @@
                 if(currentRole==='staff'){
                     html+='<div class="record-row staff-view"><div class="record-product" data-label="商品"><div><div class="record-name">'+r.name+'</div><span class="record-category">'+r.category+'</span></div><div class="record-date">'+r.date+'</div></div><div class="record-cell record-price" data-label="售价">¥'+r.saleprice.toFixed(2)+'</div><div class="record-cell" data-label="数量">'+r.quantity+'</div><div class="record-cell record-price" data-label="营收">¥'+itemRevenue.toFixed(2)+'</div><div class="record-actions" data-label="操作"><button class="delete-btn action-btn" onclick="deleteRecord('+r.id+')">删除</button></div></div>';
                 }else{
-                    html+='<div class="record-row"><div class="record-product" data-label="商品"><div><div class="record-name">'+r.name+'</div><span class="record-category">'+r.category+'</span>'+(r.modifiedby?'<span style="color:#ff9800;font-size:11px;">(已修改)</span>':'')+'</div><div class="record-date">'+r.date+'</div></div><div class="record-cell record-price" data-label="售价">¥'+r.saleprice.toFixed(2)+'</div><div class="record-cell" data-label="成本" style="color:'+(r.costprice===0?'#999':'#333')+'">¥'+r.costprice.toFixed(2)+(r.costprice===0?'<span style="font-size:10px;color:#999;">(待补)</span>':'')+'</div><div class="record-cell" data-label="数量">'+r.quantity+'</div><div class="record-cell record-price" data-label="营收">¥'+itemRevenue.toFixed(2)+'</div><div class="record-cell record-profit '+(isProfit?'profit-positive':'profit-negative')+'" data-label="利润">'+(isProfit?'+':'')+'¥'+itemProfit.toFixed(2)+'</div><div class="record-actions" data-label="操作"><button class="edit-btn action-btn" onclick="openEdit('+r.id+')">修改</button><button class="delete-btn action-btn" onclick="deleteRecord('+r.id+')">删除</button></div></div>';
+                    // 核心修改：去掉利润前的+/-号，只保留金额和颜色
+                    html+='<div class="record-row"><div class="record-product" data-label="商品"><div><div class="record-name">'+r.name+'</div><span class="record-category">'+r.category+'</span>'+(r.modifiedby?'<span style="color:#ff9800;font-size:11px;">(已修改)</span>':'')+'</div><div class="record-date">'+r.date+'</div></div><div class="record-cell record-price" data-label="售价">¥'+r.saleprice.toFixed(2)+'</div><div class="record-cell" data-label="成本" style="color:'+(r.costprice===0?'#999':'#333')+'">¥'+r.costprice.toFixed(2)+(r.costprice===0?'<span style="font-size:10px;color:#999;">(待补)</span>':'')+'</div><div class="record-cell" data-label="数量">'+r.quantity+'</div><div class="record-cell record-price" data-label="营收">¥'+itemRevenue.toFixed(2)+'</div><div class="record-cell record-profit '+(isProfit?'profit-positive':'profit-negative')+'" data-label="利润">¥'+itemProfit.toFixed(2)+'</div><div class="record-actions" data-label="操作"><button class="edit-btn action-btn" onclick="openEdit('+r.id+')">修改</button><button class="delete-btn action-btn" onclick="deleteRecord('+r.id+')">删除</button></div></div>';
                 }
             });
             var totalRevenue=0,totalCost=0;
             filtered.forEach(function(r){totalRevenue+=r.saleprice*r.quantity;totalCost+=r.costprice*r.quantity});
             var totalProfit=totalRevenue-totalCost;
             if(currentRole==='staff'){html+='<div class="summary-row staff-view"><div class="summary-label">合计 ('+filtered.length+'笔)</div><div>-</div><div>-</div><div class="record-price">¥'+totalRevenue.toFixed(2)+'</div><div>-</div></div>';}
-            else{html+='<div class="summary-row"><div class="summary-label">合计 ('+filtered.length+'笔)</div><div>-</div><div class="record-price">¥'+totalCost.toFixed(2)+'</div><div>-</div><div class="record-price">¥'+totalRevenue.toFixed(2)+'</div><div class="record-profit '+(totalProfit>=0?'profit-positive':'profit-negative')+'">'+(totalProfit>=0?'+':'')+'¥'+totalProfit.toFixed(2)+'</div><div>-</div></div>';}
+            else{
+                // 合计行也去掉+/-号
+                html+='<div class="summary-row"><div class="summary-label">合计 ('+filtered.length+'笔)</div><div>-</div><div class="record-price">¥'+totalCost.toFixed(2)+'</div><div>-</div><div class="record-price">¥'+totalRevenue.toFixed(2)+'</div><div class="record-profit '+(totalProfit>=0?'profit-positive':'profit-negative')+'">¥'+totalProfit.toFixed(2)+'</div><div>-</div></div>';
+            }
             list.innerHTML=html;
         }
 
